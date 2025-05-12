@@ -1,0 +1,35 @@
+---
+# Apache installation tasks
+
+- name: Check if Apache is installed
+  command: dpkg-query -W -f='${Status}' apache2
+  register: apache_check
+  failed_when: false
+  changed_when: false
+
+- name: Check if Apache is running
+  service:
+    name: apache2
+    state: started
+  register: apache_status
+  failed_when: false
+  ignore_errors: true
+  when: "'installed' in apache_check.stdout"
+
+- name: Display Apache status
+  debug:
+    msg: "Apache is already installed and running"
+  when: "'installed' in apache_check.stdout and not apache_status.failed"
+
+- name: Install Apache
+  apt:
+    name: "{{ apache_packages }}"
+    state: present
+    update_cache: yes
+  when: "not ('installed' in apache_check.stdout) or apache_status.failed"
+
+- name: Ensure Apache is running
+  service:
+    name: apache2
+    state: started
+    enabled: yes 

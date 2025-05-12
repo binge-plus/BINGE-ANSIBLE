@@ -1,0 +1,25 @@
+# BINGE Services Variables
+
+# Node.js configuration
+node_version: "20"
+
+# Apache configuration
+apache_packages:
+  - apache2
+  - apache2-utils
+
+# System configuration
+system_packages:
+  - curl
+  - git
+  - zip
+  - unzip
+  - htop
+
+# Service configuration
+enable_services: true
+
+# Apache version
+apache_version: "latest"
+enable_apache_autostart: true
+enable_nodejs_autostart: true 

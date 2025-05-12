@@ -1,0 +1,70 @@
+name: BINGE Services Installation
+on:
+  workflow_dispatch:
+    inputs:
+      env:
+        description: 'Configuration Set'
+        required: true
+        default: 'binge'
+        type: choice
+        options:
+          - binge
+
+jobs:
+  run-playbook:
+    name: "Install BINGE Services"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./infra/ansible
+    
+    steps:
+      # Checkout Project repository
+      - name: Checkout Project
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      # Setup SSH key for secure server login
+      - name: Set up SSH Key file
+        run: |
+          if [ -z "${{ secrets.GCP_VM_PRIVATE_KEY }}" ]; then
+            echo "Error: SSH key is not set in secrets"
+            exit 1
+          fi
+          echo "${{ secrets.GCP_VM_PRIVATE_KEY }}" > private_key.pem
+          chmod 400 private_key.pem
+          ls -la private_key.pem
+
+      # Install Ansible
+      - name: Install Ansible
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y software-properties-common
+          sudo apt-add-repository --yes --update ppa:ansible/ansible
+          sudo apt-get install -y ansible
+          ansible --version
+
+      # Verify inventory file exists
+      - name: Check inventory file
+        run: |
+          if [ ! -f "config/${{ inputs.env }}/inventory.ini" ]; then
+            echo "Error: Inventory file not found at config/${{ inputs.env }}/inventory.ini"
+            exit 1
+          fi
+          cat "config/${{ inputs.env }}/inventory.ini"
+
+      # Verify Ansible Playbook
+      - name: Verify Ansible playbook
+        run: |
+          ansible-playbook binge-services-playbook.yml --syntax-check -i "config/${{ inputs.env }}/inventory.ini" -e "env=${{ inputs.env }}"
+
+      # Test Servers Connectivity
+      - name: Test servers connectivity
+        run: |
+          ansible all -m ping -i "config/${{ inputs.env }}/inventory.ini"
+
+      # Run Ansible Playbook
+      - name: Run Ansible playbook
+        run: |
+          ansible-playbook binge-services-playbook.yml -i "config/${{ inputs.env }}/inventory.ini" -e "env=${{ inputs.env }}"
