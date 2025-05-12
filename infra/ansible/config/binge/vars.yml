@@ -24,10 +24,7 @@ apache_version: "latest"
 enable_apache_autostart: true
 enable_nodejs_autostart: true
 
-# NVM configuration
-nvm_version: "0.39.3"
-nvm_node_version: "lts/*"
-
-# PM2 configuration
-pm2_startup: true
-pm2_save_on_install: true 
+# Jenkins configuration
+jenkins_port: 8080
+jenkins_java_version: "openjdk-11-jdk"
+jenkins_url_prefix: "" 

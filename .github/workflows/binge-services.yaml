@@ -9,6 +9,14 @@ on:
         type: choice
         options:
           - binge
+      playbook:
+        description: 'Playbook to run'
+        required: true
+        default: 'binge-services'
+        type: choice
+        options:
+          - binge-services
+          - jenkins
 
 jobs:
   run-playbook:
@@ -45,6 +53,16 @@ jobs:
           sudo apt-get install -y ansible
           ansible --version
 
+      # Determine which playbook to run
+      - name: Set playbook filename
+        id: set-playbook
+        run: |
+          if [ "${{ inputs.playbook }}" == "jenkins" ]; then
+            echo "::set-output name=playbook_file::jenkins-playbook.yml"
+          else
+            echo "::set-output name=playbook_file::binge-services-playbook.yml"
+          fi
+
       # Verify inventory file exists
       - name: Check inventory file
         run: |
@@ -57,14 +75,18 @@ jobs:
       # Verify Ansible Playbook
       - name: Verify Ansible playbook
         run: |
-          ansible-playbook binge-services-playbook.yml --syntax-check -i "config/${{ inputs.env }}/inventory.ini" -e "env=${{ inputs.env }}"
+          ansible-playbook ${{ steps.set-playbook.outputs.playbook_file }} --syntax-check -i "config/${{ inputs.env }}/inventory.ini" -e "env=${{ inputs.env }}"
 
       # Test Servers Connectivity
       - name: Test servers connectivity
         run: |
-          ansible all -m ping -i "config/${{ inputs.env }}/inventory.ini"
+          if [ "${{ inputs.playbook }}" == "jenkins" ]; then
+            ansible jenkins_servers -m ping -i "config/${{ inputs.env }}/inventory.ini"
+          else
+            ansible binge_servers -m ping -i "config/${{ inputs.env }}/inventory.ini"
+          fi
 
       # Run Ansible Playbook
       - name: Run Ansible playbook
         run: |
-          ansible-playbook binge-services-playbook.yml -i "config/${{ inputs.env }}/inventory.ini" -e "env=${{ inputs.env }}"
+          ansible-playbook ${{ steps.set-playbook.outputs.playbook_file }} -i "config/${{ inputs.env }}/inventory.ini" -e "env=${{ inputs.env }}"

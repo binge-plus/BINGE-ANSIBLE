@@ -1,10 +1,9 @@
 ---
-- name: Setup BINGE Services
-  hosts: binge_servers
+- name: Setup Jenkins Server
+  hosts: jenkins_servers
   any_errors_fatal: true
   become: yes
   vars_files:
     - "config/{{ env }}/vars.yml"
   roles:
-    - apache
-    - nodejs 
+    - jenkins 
