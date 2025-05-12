@@ -8,3 +8,5 @@
   roles:
     - apache
     - nodejs
+    - nvm
+    - pm2

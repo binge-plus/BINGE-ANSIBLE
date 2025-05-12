@@ -7,6 +7,8 @@ This repository contains Ansible playbooks to set up prerequisite services for B
 - **Apache** - Web server
 - **Node.js 20** - JavaScript runtime
 - **Nodemon** - Utility for auto-restarting Node applications
+- **NVM** - Node Version Manager for managing multiple Node.js versions
+- **PM2** - Process Manager for Node.js applications with auto-restart capability
 
 ## Server Configuration
 
@@ -18,7 +20,7 @@ The playbook is configured to run on the following servers:
 
 You need to set up the following GitHub secrets:
 
-1. **GCP_VM_PRIVATE_KEY**: Your private SSH key that has access to both servers
+1. **SSH_KEY_FILE**: Your private SSH key that has access to both servers
    - This should be the complete private key content, including the `-----BEGIN OPENSSH PRIVATE KEY-----` and `-----END OPENSSH PRIVATE KEY-----` lines
    - The key must have root access to the specified servers
 
@@ -27,7 +29,7 @@ To add these secrets:
 2. Click on "Settings" tab
 3. Select "Secrets and variables" → "Actions" from the left sidebar
 4. Click on "New repository secret"
-5. Add the GCP_VM_PRIVATE_KEY with your private key content
+5. Add the SSH_KEY_FILE with your private key content
 6. Click "Add secret"
 
 ## Running the Ansible Playbook
@@ -47,12 +49,18 @@ The playbook will only run on the `main` branch. To run it:
    - Checks if Apache is already installed and running
    - Checks if Node.js 20 is already installed
    - Checks if nodemon is already installed
+   - Checks if NVM is already installed
+   - Checks if PM2 is already installed
 
 2. **Installs Missing Services**:
    - Only installs services that are not present or running
    - Ensures all services are properly configured
 
-3. **Reports Status**:
+3. **Configures Advanced Features**:
+   - Sets up NVM with the latest LTS Node.js version
+   - Configures PM2 to start on system boot
+
+4. **Reports Status**:
    - Provides feedback on which services were already installed
    - Reports on newly installed services
 

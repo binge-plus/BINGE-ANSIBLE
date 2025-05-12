@@ -22,4 +22,12 @@ enable_services: true
 # Apache version
 apache_version: "latest"
 enable_apache_autostart: true
-enable_nodejs_autostart: true 
+enable_nodejs_autostart: true
+
+# NVM configuration
+nvm_version: "0.39.3"
+nvm_node_version: "lts/*"
+
+# PM2 configuration
+pm2_startup: true
+pm2_save_on_install: true 

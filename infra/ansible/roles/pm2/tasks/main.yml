@@ -1,0 +1,47 @@
+---
+# PM2 installation tasks
+
+- name: Check if PM2 is installed
+  command: which pm2
+  register: pm2_check
+  failed_when: false
+  changed_when: false
+
+- name: Display PM2 status
+  debug:
+    msg: "PM2 is already installed"
+  when: pm2_check.rc == 0
+
+- name: Check PM2 version if installed
+  shell: pm2 --version
+  register: pm2_version
+  failed_when: false
+  changed_when: false
+  when: pm2_check.rc == 0
+
+- name: Display PM2 version
+  debug:
+    msg: "PM2 version {{ pm2_version.stdout }}"
+  when: pm2_check.rc == 0 and pm2_version.rc == 0
+
+- name: Install PM2 globally
+  npm:
+    name: pm2
+    global: yes
+    state: present
+  when: pm2_check.rc != 0
+
+- name: Set PM2 to start on boot
+  shell: |
+    pm2 startup
+    pm2 save
+  args:
+    executable: /bin/bash
+  register: pm2_startup
+  failed_when: false
+  when: pm2_check.rc != 0
+
+- name: Display PM2 startup configuration
+  debug:
+    msg: "{{ pm2_startup.stdout_lines }}"
+  when: pm2_check.rc != 0 and pm2_startup.stdout is defined 

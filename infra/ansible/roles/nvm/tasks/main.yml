@@ -1,0 +1,58 @@
+---
+# NVM installation tasks
+
+- name: Check if NVM is installed
+  shell: |
+    if [ -d ~/.nvm ] || [ -d /root/.nvm ]; then
+      echo "installed"
+    else
+      echo "not installed"
+    fi
+  register: nvm_check
+  changed_when: false
+
+- name: Display NVM status
+  debug:
+    msg: "NVM is already installed"
+  when: nvm_check.stdout == "installed"
+
+- name: Install prerequisites for NVM
+  apt:
+    name:
+      - curl
+      - git
+      - build-essential
+      - libssl-dev
+    state: present
+    update_cache: yes
+  when: nvm_check.stdout == "not installed"
+
+- name: Download and install NVM
+  shell: |
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
+  args:
+    creates: "/root/.nvm/nvm.sh"
+  when: nvm_check.stdout == "not installed"
+
+- name: Add NVM to bash profile if not exists
+  lineinfile:
+    path: "/root/.bashrc"
+    line: "{{ item }}"
+    state: present
+  with_items:
+    - 'export NVM_DIR="$HOME/.nvm"'
+    - '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm'
+    - '[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion'
+  when: nvm_check.stdout == "not installed"
+
+- name: Install Node.js LTS with NVM
+  shell: |
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    nvm install --lts
+    nvm alias default node
+  args:
+    executable: /bin/bash
+  register: nvm_install
+  changed_when: "'is already installed' not in nvm_install.stdout"
+  when: nvm_check.stdout == "not installed" 
